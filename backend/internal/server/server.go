@@ -9,7 +9,7 @@ import (
 
 	_ "github.com/joho/godotenv/autoload"
 
-	"temp-backend/internal/database"
+	"miyanote-backend/internal/database"
 )
 
 type Server struct {

@@ -1,4 +1,4 @@
-module temp-backend
+module miyanote-backend
 
 go 1.24.6
 
