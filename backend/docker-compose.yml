@@ -11,5 +11,14 @@ services:
     volumes:
       - psql_volume_bp:/var/lib/postgresql/data
 
+  api: # 追加
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - psql_bp
+    environment:
+      - DB_HOST=psql_bp
+
 volumes:
   psql_volume_bp:

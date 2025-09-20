@@ -3,23 +3,19 @@ services:
     image: postgres:15-alpine
     container_name: miyanote-db
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-miyanote}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: miyanote
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: NoteMiya0809
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --locale=C"
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./backend/migrations:/docker-entrypoint-initdb.d
     networks:
       - miyanote-network
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-miyanote}",
-        ]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d miyanote"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -32,16 +28,21 @@ services:
       dockerfile: Dockerfile
     container_name: miyanote-backend
     ports:
-      - "${BACKEND_PORT:-8080}:8080"
+      - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-miyanote}?sslmode=disable
+      DATABASE_URL: postgres://postgres:NoteMiya0809@postgres:5432/miyanote?sslmode=disable
+      BLUEPRINT_DB_DATABASE: miyanote
+      BLUEPRINT_DB_USERNAME: postgres
+      BLUEPRINT_DB_PASSWORD: NoteMiya0809
+      BLUEPRINT_DB_PORT: 5432
+      BLUEPRINT_DB_HOST: postgres
+      BLUEPRINT_DB_SCHEMA: public
       PORT: 8080
-      GIN_MODE: ${GIN_MODE:-debug}
+      GIN_MODE: debug
     volumes:
-      # 開発時のホットリロード用
       - ./backend:/app
       - /app/vendor
     networks:
@@ -54,15 +55,14 @@ services:
       dockerfile: Dockerfile
     container_name: miyanote-frontend
     ports:
-      - "${FRONTEND_PORT:-3000}:3000"
+      - "3000:3000"
     depends_on:
       - backend
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:${BACKEND_PORT:-8080}
-      NEXT_PUBLIC_APP_NAME: ${APP_NAME:-Miyanote}
-      NODE_ENV: ${NODE_ENV:-development}
+      NEXT_PUBLIC_API_URL: http://localhost:8080
+      NEXT_PUBLIC_APP_NAME: Miyanote
+      NODE_ENV: development
     volumes:
-      # 開発時のホットリロード用
       - ./frontend:/app
       - /app/node_modules
       - /app/.next
@@ -70,12 +70,10 @@ services:
       - miyanote-network
     restart: unless-stopped
 
-# ボリューム定義
 volumes:
   pgdata:
     driver: local
 
-# ネットワーク定義
 networks:
   miyanote-network:
     driver: bridge
